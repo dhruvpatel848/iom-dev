@@ -1,0 +1,106 @@
+<h2 class="mb-4"><i class="bi bi-file-earmark-plus"></i> Create Report Template</h2>
+
+<div class="card mb-4">
+    <div class="card-header">Available Placeholders</div>
+    <div class="card-body">
+        <p class="text-muted">Use these placeholders in your template. They will be replaced with actual data when
+            generating reports:</p>
+        <div class="row">
+            <div class="col-md-4">
+                <strong>Case Info:</strong><br>
+                <code>{{case_id}}</code>, <code>{{insurance_company}}</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Patient:</strong><br>
+                <code>{{patient_name}}</code>, <code>{{patient_age}}</code>, <code>{{patient_gender}}</code>,
+                <code>{{patient_address}}</code>, <code>{{patient_aadhaar}}</code>,
+                <code>{{admission_date}}</code>, <code>{{discharge_date}}</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Hospital:</strong><br>
+                <code>{{hospital_name}}</code>, <code>{{hospital_address}}</code>,
+                <code>{{hospital_registration}}</code>, <code>{{doctor_name}}</code>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-4">
+                <strong>Policy:</strong><br>
+                <code>{{policy_number}}</code>, <code>{{policy_type}}</code>,
+                <code>{{sum_insured}}</code>, <code>{{claim_type}}</code>, <code>{{claim_amount}}</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Investigation:</strong><br>
+                <code>{{investigation_findings}}</code>, <code>{{observations}}</code>,
+                <code>{{red_flags}}</code>, <code>{{supporting_notes}}</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Report:</strong><br>
+                <code>{{conclusion}}</code>, <code>{{recommendation}}</code>,
+                <code>{{officer_name}}</code>, <code>{{generated_date}}</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/admin/templates" method="POST">
+            <div class="mb-3">
+                <label for="insurance_company" class="form-label">Insurance Company *</label>
+                <select class="form-select" id="insurance_company" name="insurance_company" required>
+                    <option value="">Select Insurance Company</option>
+                    <% if (typeof companies !=='undefined' && companies.length> 0) { %>
+                        <% companies.forEach(company=> { %>
+                            <option value="<%= company.name %>">
+                                <%= company.name %>
+                            </option>
+                            <% }); %>
+                                <% } %>
+                                    <option value="Other">Other</option>
+                </select>
+
+                <div id="other_company_div" class="mt-2" style="display: none;">
+                    <label for="other_company" class="form-label">Enter Company Name</label>
+                    <input type="text" class="form-control" id="other_company" name="other_company"
+                        placeholder="Type company name">
+                </div>
+            </div>
+
+            <script>
+                function toggleOtherCompany() {
+                    const select = document.getElementById('insurance_company');
+                    const otherDiv = document.getElementById('other_company_div');
+                    const otherInput = document.getElementById('other_company');
+
+                    if (select.value === 'Other') {
+                        otherDiv.style.display = 'block';
+                        otherInput.required = true;
+                    } else {
+                        otherDiv.style.display = 'none';
+                        otherInput.required = false;
+                        otherInput.value = '';
+                    }
+                }
+            </script>
+
+            <div class="mb-3">
+                <label for="template_name" class="form-label">Template Name *</label>
+                <input type="text" class="form-control" id="template_name" name="template_name" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="template_content" class="form-label">Template Content *</label>
+                <textarea class="form-control" id="template_content" name="template_content" rows="20"
+                    style="font-family: monospace;" required
+                    placeholder="Enter your template here using placeholders..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="/admin/templates" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Template
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

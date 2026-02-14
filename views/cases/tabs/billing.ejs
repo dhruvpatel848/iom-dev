@@ -1,0 +1,123 @@
+<div class="card">
+    <div class="card-header">Billing & Expenses</div>
+    <div class="card-body">
+        <% if (!caseData.billDetail) { %>
+            <div class="alert alert-info">No billing details entered yet.</div>
+            <% } %>
+
+                <form action="/cases/<%= caseData.id %>/billing" method="POST" id="billingForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="gst_bill" class="form-label">GST Bill (Yes/No)</label>
+                            <select class="form-select" id="gst_bill" name="gst_bill" <%=isReadOnly ? 'disabled' : ''
+                                %>>
+                                <option value="">Select</option>
+                                <option value="Yes" <%=caseData.billDetail?.gst_bill==='Yes' ? 'selected' : '' %>>Yes
+                                </option>
+                                <option value="No" <%=caseData.billDetail?.gst_bill==='No' ? 'selected' : '' %>>No
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="bill_number" class="form-label">Bill Number</label>
+                            <input type="text" class="form-control" id="bill_number" name="bill_number"
+                                value="<%= caseData.billDetail?.bill_number || '' %>" <%=isReadOnly ? 'readonly' : ''
+                                %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="mrd_charge" class="form-label">MRD Charge</label>
+                            <input type="number" step="0.01" class="form-control" id="mrd_charge" name="mrd_charge"
+                                value="<%= caseData.billDetail?.mrd_charge || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="approved_expense_company" class="form-label">Expense Company Approved</label>
+                            <input type="number" step="0.01" class="form-control" id="approved_expense_company"
+                                name="approved_expense_company"
+                                value="<%= caseData.billDetail?.approved_expense_company || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="approved_expense_fo" class="form-label">FO Expense Approved</label>
+                            <input type="number" step="0.01" class="form-control" id="approved_expense_fo"
+                                name="approved_expense_fo" value="<%= caseData.billDetail?.approved_expense_fo || '' %>"
+                                <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="total_bill_amount" class="form-label">Total Bill Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="total_bill_amount"
+                                name="total_bill_amount" value="<%= caseData.billDetail?.total_bill_amount || '' %>"
+                                <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="payment_received_date" class="form-label">Payment Received Date</label>
+                            <input type="date" class="form-control" id="payment_received_date"
+                                name="payment_received_date"
+                                value="<%= caseData.billDetail?.payment_received_date || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="received_amount" class="form-label">Received Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="received_amount"
+                                name="received_amount" value="<%= caseData.billDetail?.received_amount || '' %>"
+                                <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="other_expenses" class="form-label">Other Expenses / Notes</label>
+                            <textarea class="form-control" id="other_expenses" name="other_expenses" rows="2"
+                                <%=isReadOnly ? 'readonly' : ''
+                                %>><%= caseData.billDetail?.other_expenses || '' %></textarea>
+                        </div>
+                    </div>
+
+                    <% if (!isReadOnly) { %>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Billing Details
+                        </button>
+                        <% } %>
+                </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('billingForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Validate dates
+            const dateInputs = this.querySelectorAll('input[type="date"]');
+            for (let input of dateInputs) {
+                if (input.value) {
+                    const year = new Date(input.value).getFullYear();
+                    if (year < 1900 || year > 2100) {
+                        alert(`Invalid date in ${input.previousElementSibling.innerText}. Year must be between 1900 and 2100.`);
+                        return;
+                    }
+                }
+            }
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/billing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving billing details');
+            }
+        });
+    </script>
+    <% } %>

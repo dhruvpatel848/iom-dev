@@ -1,0 +1,69 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-receipt"></i> My Billing</h2>
+    <div class="text-muted">
+        Total Cases: <%= cases.length %>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <% if (cases.length===0) { %>
+            <p class="text-muted text-center py-4">No billing records found.</p>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Case ID</th>
+                                <th>Insurance Company</th>
+                                <th>Patient Name</th>
+                                <th>Status</th>
+                                <th class="text-end">Approved Expense (FO)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% let totalAmount=0; %>
+                                <% cases.forEach(c=> {
+                                    const amount = c.billDetail?.approved_expense_fo ?
+                                    parseFloat(c.billDetail.approved_expense_fo) : 0;
+                                    totalAmount += amount;
+                                    %>
+                                    <tr>
+                                        <td>
+                                            <%= new Date(c.createdAt).toLocaleDateString('en-IN') %>
+                                        </td>
+                                        <td>
+                                            <a href="/cases/<%= c.id %>" class="text-decoration-none">
+                                                <%= c.case_id %>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <%= c.insurance_company %>
+                                        </td>
+                                        <td>
+                                            <%= c.patientDetail?.name || '-' %>
+                                        </td>
+                                        <td>
+                                            <span
+                                                class="badge bg-<%= c.status === 'open' ? 'primary' : c.status === 'in_progress' ? 'warning' : 'success' %>">
+                                                <%= c.status.toUpperCase().replace('_', ' ' ) %>
+                                            </span>
+                                        </td>
+                                        <td class="text-end">₹ <%= amount.toFixed(2) %>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="5" class="text-end">Total</td>
+                                <td class="text-end">₹ <%= totalAmount.toFixed(2) %>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <% } %>
+    </div>
+</div>

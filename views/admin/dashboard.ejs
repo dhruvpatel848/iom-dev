@@ -1,0 +1,283 @@
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+        <div>
+            <span class="text-muted">Last Updated: <%= new Date().toLocaleTimeString() %></span>
+        </div>
+    </div>
+
+    <!-- Overall Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Cases</h6>
+                            <h2 class="mt-2 mb-0">
+                                <%= overallStats.total %>
+                            </h2>
+                        </div>
+                        <i class="bi bi-folder2-open fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Pending / In Progress</h6>
+                            <h2 class="mt-2 mb-0">
+                                <%= overallStats.in_progress %>
+                            </h2>
+                        </div>
+                        <i class="bi bi-hourglass-split fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Closed Cases</h6>
+                            <h2 class="mt-2 mb-0">
+                                <%= overallStats.closed %>
+                            </h2>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Open Cases</h6>
+                            <h2 class="mt-2 mb-0">
+                                <%= overallStats.open %>
+                            </h2>
+                        </div>
+                        <i class="bi bi-exclamation-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+                    
+    <!-- Recent Cases Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Cases</h5>
+                    <a href="/cases" class="btn btn-sm btn-outline-primary">View All Cases</a>
+                </div>
+                <div class="card-body">
+                    <% if (typeof recentCases !=='undefined' && recentCases.length > 0) { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Case ID</th>
+                                    <th>Insurance Company</th>
+                                    <th>Officer</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentCases.forEach(c => { %>
+                                <tr>
+                                    <td><strong><%= c.case_id %></strong></td>
+                                    <td><%= c.insurance_company %></td>
+                                    <td><%= c.officer ? c.officer.name : '-' %></td>
+                                    <td>
+                                        <span class="badge bg-<%= c.status === 'open' ? 'primary' : c.status === 'in_progress' ? 'warning' : 'success' %>">
+                                            <%= c.status.toUpperCase().replace('_', ' ') %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(c.createdAt).toLocaleDateString('en-IN') %></td>
+                                    <td>
+                                        <a href="/cases/<%= c.id %>" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a>
+                                        <button onclick="deleteCase(<%= c.id %>, '<%= c.case_id %>')"
+                                            class="btn btn-sm btn-outline-danger ms-1">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <p class="text-muted mb-0">No recent cases found.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Officer Performance Table -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Officer Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Officer Name</th>
+                                    <th class="text-center">Total Assigned</th>
+                                    <th class="text-center">Open</th>
+                                    <th class="text-center">In Progress</th>
+                                    <th class="text-center">Closed</th>
+                                    <th class="text-center">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% officerStats.forEach(officer=> {
+                                    const percent = officer.total > 0 ? Math.round((officer.closed / officer.total) *
+                                    100) : 0;
+                                    %>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar bg-light rounded-circle p-2 me-2">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        <%= officer.name %>
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        <%= officer.email %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-bold">
+                                            <%= officer.total %>
+                                        </td>
+                                        <td class="text-center text-primary">
+                                            <%= officer.open %>
+                                        </td>
+                                        <td class="text-center text-warning">
+                                            <%= officer.in_progress %>
+                                        </td>
+                                        <td class="text-center text-success fw-bold">
+                                            <%= officer.closed %>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="progress" style="height: 6px;" title="<%= percent %>% Closed">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                    style="width: <%= percent %>%"></div>
+                                            </div>
+                                            <small class="text-muted">
+                                                <%= percent %>%
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                        <% if (officerStats.length===0) { %>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4">No officers found</td>
+                                            </tr>
+                                            <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commission Summary and Quick Actions -->
+        <div class="col-lg-4">
+            <!-- Commission Stats -->
+            <% if (user.role === 'super_admin' && commissionStats) { %>
+            <div class="card mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Commission Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span>Total Paid</span>
+                        <span class="fw-bold text-success">₹ <%= commissionStats.paid.toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span>Pending Payment</span>
+                        <span class="fw-bold text-warning">₹ <%= commissionStats.pending.toLocaleString('en-IN') %>
+                                </span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2">
+                        <span class="fw-bold">Total Commission</span>
+                        <span class="fw-bold">₹ <%= commissionStats.total_amount.toLocaleString('en-IN') %></span>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/cases/create"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-plus-circle me-2"></i> Create New Case</span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+                    <a href="/admin/users/create"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-plus me-2"></i> Add New Officer</span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+                    <a href="/admin/templates/create"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-file-earmark-plus me-2"></i> Add Report Template</span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+                    <a href="/admin/users"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-people me-2"></i> Manage Users</span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function deleteCase(caseId, caseNumber) {
+        if (!confirm(`Are you sure you want to delete case ${caseNumber}? This will permanently delete all related data including documents, reports, and investigation details. This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/cases/${caseId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                location.reload();
+            } else {
+                alert(result.message || 'Error deleting case');
+            }
+        } catch (error) {
+            alert('Error deleting case: ' + error.message);
+        }
+    }
+</script>

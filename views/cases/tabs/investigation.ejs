@@ -1,0 +1,124 @@
+<div class="card">
+    <div class="card-header">Investigation Notes</div>
+    <div class="card-body">
+        <form action="/cases/<%= caseData.id %>/investigation" method="POST" id="investigationForm">
+            <div class="mb-3">
+                <label for="findings" class="form-label">Investigation Findings</label>
+                <textarea class="form-control" id="findings" name="findings" rows="4" <%=isReadOnly ? 'readonly' : ''
+                    %>><%= caseData.investigationNote?.findings || '' %></textarea>
+                <small class="form-text text-muted">Document your investigation findings in detail.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="observations" class="form-label">Observations</label>
+                <textarea class="form-control" id="observations" name="observations" rows="4" <%=isReadOnly ? 'readonly'
+                    : '' %>><%= caseData.investigationNote?.observations || '' %></textarea>
+                <small class="form-text text-muted">Note any important observations during the investigation.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="red_flags" class="form-label">Red Flags (Optional)</label>
+                <textarea class="form-control" id="red_flags" name="red_flags" rows="3" <%=isReadOnly ? 'readonly' : ''
+                    %>><%= caseData.investigationNote?.red_flags || '' %></textarea>
+                <small class="form-text text-muted">Highlight any suspicious or concerning elements.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="trigger" class="form-label">Trigger / Reason for Investigation</label>
+                <textarea class="form-control" id="trigger" name="trigger" rows="3" <%=isReadOnly ? 'readonly' : ''
+                    %>><%= caseData.investigationNote?.trigger || '' %></textarea>
+                <small class="form-text text-muted">Specific reason for triggering this investigation.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="supporting_notes" class="form-label">Supporting Notes (Optional)</label>
+                <textarea class="form-control" id="supporting_notes" name="supporting_notes" rows="3" <%=isReadOnly
+                    ? 'readonly' : '' %>><%= caseData.investigationNote?.supporting_notes || '' %></textarea>
+                <small class="form-text text-muted">Any additional notes or context.</small>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="text-primary mb-3"><i class="bi bi-clipboard-data"></i> Visit Findings</h5>
+
+            <div class="mb-3">
+                <label for="hospital_visit_findings" class="form-label">Hospital Visit Findings</label>
+                <textarea class="form-control" id="hospital_visit_findings" name="hospital_visit_findings" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.hospital_visit_findings || '' %></textarea>
+                <small class="form-text text-muted">Findings from the hospital visit.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="doctor_visit_findings" class="form-label">Treating Doctor Visit Findings</label>
+                <textarea class="form-control" id="doctor_visit_findings" name="doctor_visit_findings" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.doctor_visit_findings || '' %></textarea>
+                <small class="form-text text-muted">Findings from meeting with the treating doctor.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="insured_visit_findings" class="form-label">Insured Visit Findings</label>
+                <textarea class="form-control" id="insured_visit_findings" name="insured_visit_findings" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.insured_visit_findings || '' %></textarea>
+                <small class="form-text text-muted">Findings from meeting with the insured person.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="pharmacy_visit_findings" class="form-label">Pharmacy Visit Findings</label>
+                <textarea class="form-control" id="pharmacy_visit_findings" name="pharmacy_visit_findings" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.pharmacy_visit_findings || '' %></textarea>
+                <small class="form-text text-muted">Findings from pharmacy verification.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="lab_visit_findings" class="form-label">Laboratory/Diagnostic Center Visit Findings</label>
+                <textarea class="form-control" id="lab_visit_findings" name="lab_visit_findings" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.lab_visit_findings || '' %></textarea>
+                <small class="form-text text-muted">Findings from lab/diagnostic center verification.</small>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="text-primary mb-3"><i class="bi bi-journal-text"></i> Case Summary</h5>
+
+            <div class="mb-3">
+                <label for="diagnosis" class="form-label">Diagnosis</label>
+                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.diagnosis || '' %></textarea>
+                <small class="form-text text-muted">Medical diagnosis of the case.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="brief_description" class="form-label">Brief Description of Case (Investigator Findings)</label>
+                <textarea class="form-control" id="brief_description" name="brief_description" rows="5" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.brief_description || '' %></textarea>
+                <small class="form-text text-muted">As per hospital, As per insured, etc.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="conclusion" class="form-label">Conclusion</label>
+                <textarea class="form-control" id="conclusion" name="conclusion" rows="4" <%=isReadOnly ? 'readonly' : '' %>><%= caseData.investigationNote?.conclusion || '' %></textarea>
+                <small class="form-text text-muted">Final conclusion of the investigation.</small>
+            </div>
+
+            <% if (!isReadOnly) { %>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Investigation Notes
+                </button>
+                <% } %>
+        </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('investigationForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/investigation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving investigation notes');
+            }
+        });
+    </script>
+    <% } %>

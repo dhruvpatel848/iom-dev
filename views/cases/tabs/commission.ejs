@@ -1,0 +1,108 @@
+<div class="card">
+    <div class="card-header">Commission Details</div>
+    <div class="card-body">
+        <% if (!caseData.commission) { %>
+            <div class="alert alert-info">No commission details entered yet.</div>
+            <% } else { %>
+                <div class="alert alert-<%= caseData.commission.status === 'paid' ? 'success' : 'warning' %>">
+                    Commission Status: <strong>
+                        <%= caseData.commission.status.toUpperCase() %>
+                    </strong> |
+                    Amount: <strong>₹<%= caseData.commission.amount %></strong>
+                </div>
+                <% } %>
+
+                    <form action="/cases/<%= caseData.id %>/commission" method="POST" id="commissionForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Commission Type *</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="commission_type"
+                                            id="type_fixed" value="fixed"
+                                            <%=caseData.commission?.commission_type==='fixed' ? 'checked' : '' %>
+                                        <%= isReadOnly ? 'disabled' : 'required' %>>
+                                            <label class="form-check-label" for="type_fixed">Fixed</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="commission_type"
+                                            id="type_percentage" value="percentage"
+                                            <%=caseData.commission?.commission_type==='percentage' ? 'checked' : '' %>
+                                        <%= isReadOnly ? 'disabled' : '' %>>
+                                            <label class="form-check-label" for="type_percentage">Percentage</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="commission_type"
+                                            id="type_custom" value="custom"
+                                            <%=caseData.commission?.commission_type==='custom' ? 'checked' : '' %>
+                                        <%= isReadOnly ? 'disabled' : '' %>>
+                                            <label class="form-check-label" for="type_custom">Custom</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">Commission Amount (₹) *</label>
+                                <input type="number" class="form-control" id="amount" name="amount"
+                                    value="<%= caseData.commission?.amount || '' %>" <%=isReadOnly ? 'readonly'
+                                    : 'required' %>
+                                step="0.01">
+                                <small class="form-text text-muted">Enter the commission amount manually</small>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label for="notes" class="form-label">Commission Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" <%=isReadOnly
+                                    ? 'readonly' : '' %>><%= caseData.commission?.notes || '' %></textarea>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Status *</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status" id="status_pending"
+                                            value="pending" <%=!caseData.commission ||
+                                            caseData.commission?.status==='pending' ? 'checked' : '' %>
+                                        <%= isReadOnly ? 'disabled' : 'required' %>>
+                                            <label class="form-check-label" for="status_pending">Pending</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status" id="status_paid"
+                                            value="paid" <%=caseData.commission?.status==='paid' ? 'checked' : '' %>
+                                        <%= isReadOnly ? 'disabled' : '' %>>
+                                            <label class="form-check-label" for="status_paid">Paid</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <% if (!isReadOnly) { %>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Commission Details
+                            </button>
+                            <% } %>
+                    </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('commissionForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/commission', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error saving commission details');
+            }
+        });
+    </script>
+    <% } %>

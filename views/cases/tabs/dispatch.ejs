@@ -1,0 +1,83 @@
+<div class="card">
+    <div class="card-header">Dispatch & Logistics</div>
+    <div class="card-body">
+        <% if (!caseData.dispatchDetail) { %>
+            <div class="alert alert-info">No dispatch details entered yet.</div>
+            <% } %>
+
+                <form action="/cases/<%= caseData.id %>/dispatch" method="POST" id="dispatchForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hard_copy_submit_date" class="form-label">Hard Copy Submit Date</label>
+                            <input type="date" class="form-control" id="hard_copy_submit_date"
+                                name="hard_copy_submit_date"
+                                value="<%= caseData.dispatchDetail?.hard_copy_submit_date || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="courier_name" class="form-label">Courier Name</label>
+                            <input type="text" class="form-control" id="courier_name" name="courier_name"
+                                value="<%= caseData.dispatchDetail?.courier_name || '' %>" <%=isReadOnly ? 'readonly'
+                                : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pod_number" class="form-label">POD Number</label>
+                            <input type="text" class="form-control" id="pod_number" name="pod_number"
+                                value="<%= caseData.dispatchDetail?.pod_number || '' %>" <%=isReadOnly ? 'readonly' : ''
+                                %>>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="sender_name_address" class="form-label">Sender Name & Address</label>
+                            <textarea class="form-control" id="sender_name_address" name="sender_name_address" rows="3"
+                                <%=isReadOnly ? 'readonly' : ''
+                                %>><%= caseData.dispatchDetail?.sender_name_address || '' %></textarea>
+                        </div>
+                    </div>
+
+                    <% if (!isReadOnly) { %>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Dispatch Details
+                        </button>
+                        <% } %>
+                </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('dispatchForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Validate dates
+            const dateInputs = this.querySelectorAll('input[type="date"]');
+            for (let input of dateInputs) {
+                if (input.value) {
+                    const year = new Date(input.value).getFullYear();
+                    if (year < 1900 || year > 2100) {
+                        alert(`Invalid date in ${input.previousElementSibling.innerText}. Year must be between 1900 and 2100.`);
+                        return;
+                    }
+                }
+            }
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving dispatch details');
+            }
+        });
+    </script>
+    <% } %>

@@ -1,0 +1,122 @@
+<div class="card">
+    <div class="card-header">Patient Information</div>
+    <div class="card-body">
+        <% if (!caseData.patientDetail) { %>
+            <div class="alert alert-info">No patient details entered yet.</div>
+            <% } %>
+
+                <form action="/cases/<%= caseData.id %>/patient" method="POST" id="patientForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Patient Name *</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                value="<%= caseData.patientDetail?.name || '' %>" <%=isReadOnly ? 'readonly' : 'required' %>>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="age" class="form-label">Age *</label>
+                            <input type="number" class="form-control" id="age" name="age"
+                                value="<%= caseData.patientDetail?.age || '' %>" <%=isReadOnly ? 'readonly' : 'required' %>>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="gender" class="form-label">Gender *</label>
+                            <select class="form-select" id="gender" name="gender" <%=isReadOnly ? 'disabled'
+                                : 'required' %>>
+                                <option value="">Select</option>
+                                <option value="male" <%=caseData.patientDetail?.gender==='male' ? 'selected' : '' %>>Male</option>
+                                <option value="female" <%=caseData.patientDetail?.gender==='female' ? 'selected' : '' %>>Female</option>
+                                <option value="other" <%=caseData.patientDetail?.gender==='other' ? 'selected' : '' %>>Other</option>
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="address" class="form-label">Address *</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" <%=isReadOnly
+                                ? 'readonly' : 'required' %>><%= caseData.patientDetail?.address || '' %></textarea>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="aadhaar_number" class="form-label">Aadhaar / ID Number</label>
+                            <input type="text" class="form-control" id="aadhaar_number" name="aadhaar_number"
+                                value="<%= caseData.patientDetail?.aadhaar_number || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="insured_name" class="form-label">Insured Name *</label>
+                            <input type="text" class="form-control" id="insured_name" name="insured_name"
+                                value="<%= caseData.patientDetail?.insured_name || '' %>" <%=isReadOnly ? 'readonly' : 'required' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="mobile_number" class="form-label">Mobile Number</label>
+                            <input type="text" class="form-control" id="mobile_number" name="mobile_number"
+                                value="<%= caseData.patientDetail?.mobile_number || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city" name="city"
+                                value="<%= caseData.patientDetail?.city || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="admission_date" class="form-label">Admission Date *</label>
+                            <input type="date" class="form-control" id="admission_date" name="admission_date"
+                                value="<%= caseData.patientDetail?.admission_date || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="discharge_date" class="form-label">Discharge Date *</label>
+                            <input type="date" class="form-control" id="discharge_date" name="discharge_date"
+                                value="<%= caseData.patientDetail?.discharge_date || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>>
+                        </div>
+                    </div>
+
+                    <% if (!isReadOnly) { %>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Patient Details
+                        </button>
+                        <% } %>
+                </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('patientForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            
+            // Validate dates
+            const dateInputs = this.querySelectorAll('input[type="date"]');
+            for (let input of dateInputs) {
+                if (input.value) {
+                    const year = new Date(input.value).getFullYear();
+                    if (year < 1900 || year > 2100) {
+                        alert(`Invalid date in ${input.previousElementSibling.innerText}. Year must be between 1900 and 2100.`);
+                        return;
+                    }
+                }
+            }
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/patient', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving patient details');
+            }
+        });
+    </script>
+    <% } %>

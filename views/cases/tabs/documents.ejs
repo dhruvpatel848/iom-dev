@@ -1,0 +1,283 @@
+<div class="card mb-3">
+    <div class="card-header">Upload Documents</div>
+    <div class="card-body">
+        <% if (isReadOnly && !(user.role==='field_officer' && caseData.status !=='closed' )) { %>
+            <div class="alert alert-warning">Case is closed. Document upload disabled.</div>
+            <% } else { %>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="documents" class="form-label">Select Files (Max 10)</label>
+                            <input type="file" class="form-control" id="documents" name="documents" multiple>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Document Source</label>
+                            <div class="d-flex gap-3 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="doc_source"
+                                        id="source_investigation" value="investigation" checked
+                                        onchange="updateDocumentTypes()">
+                                    <label class="form-check-label" for="source_investigation">Investigation</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="doc_source" id="source_company"
+                                        value="company" onchange="updateDocumentTypes()">
+                                    <label class="form-check-label" for="source_company">From Company</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="document_type" class="form-label">Document Type</label>
+                            <select class="form-select" id="document_type" name="document_type">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <i class="bi bi-upload"></i> Upload Documents
+                    </button>
+
+                    <!-- Progress indicator -->
+                    <div id="uploadProgress" class="mt-3" style="display: none;">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            <span id="uploadStatus">Uploading...</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                </form>
+                <% } %>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Uploaded Documents (<%= caseData.documents?.length || 0 %>)</div>
+    <div class="card-body">
+        <% if (!caseData.documents || caseData.documents.length===0) { %>
+            <p class="text-muted">No documents uploaded yet.</p>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Source</th>
+                                <th>Type</th>
+                                <th>Uploaded By</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% caseData.documents.forEach(function(doc) { %>
+                                <tr>
+                                    <td>
+                                        <%= doc.file_name %>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge bg-<%= doc.doc_source === 'company' ? 'info' : 'secondary' %>">
+                                            <%= doc.doc_source==='company' ? 'Company' : 'Investigation' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <%= doc.document_type.replace('_', ' ' ) %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <%= doc.uploader?.name || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(doc.createdAt).toLocaleDateString('en-IN') %>
+                                    </td>
+                                    <td>
+                                        <a href="/documents/<%= doc.id %>/view" target="_blank"
+                                            class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="/documents/<%= doc.id %>/download"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download"></i> Download
+                                        </a>
+                                        <% if (!isReadOnly) { %>
+                                            <button onclick="deleteDocument(<%= doc.id %>)"
+                                                class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        const docTypes = {
+            company: [
+                { value: 'patient_docs', label: 'Patient Documents' },
+                { value: 'hospital_docs', label: 'Hospital Records' },
+                { value: 'policy_docs', label: 'Policy Documents' },
+                { value: 'bills', label: 'Bills' },
+                { value: 'discharge_summary', label: 'Discharge Summary' },
+                { value: 'id_proofs', label: 'ID Proofs' },
+                { value: 'other', label: 'Other' }
+            ],
+            investigation: [
+                { value: 'td_part', label: 'TD Part' },
+                { value: 'verification_part', label: 'Verification Part' },
+                { value: 'hos_part', label: 'Hos Part' },
+                { value: 'lab_part', label: 'Lab Part' },
+                { value: 'medi_part', label: 'Medi Part' },
+                { value: 'pt_part', label: 'Pt Part' },
+                { value: 'other_merged', label: 'Other (Merged)' }
+            ]
+        };
+
+        function updateDocumentTypes() {
+            const source = document.querySelector('input[name="doc_source"]:checked').value;
+            const select = document.getElementById('document_type');
+            select.innerHTML = '';
+
+            docTypes[source].forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.value;
+                option.textContent = type.label;
+                select.appendChild(option);
+            });
+        }
+
+        // Initialize on load
+        updateDocumentTypes();
+
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const fileInput = this.querySelector('input[type="file"]');
+            const files = fileInput.files;
+
+            if (!files || files.length === 0) {
+                alert('Please select at least one file');
+                return;
+            }
+
+            if (files.length > 10) {
+                alert('Maximum 10 files allowed');
+                return;
+            }
+
+            // Show progress indicator
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading...';
+            progressDiv.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            const formData = new FormData();
+            const docType = document.getElementById('document_type').value;
+            const docSource = document.querySelector('input[name="doc_source"]:checked').value;
+
+            // Calculate total size for progress
+            let totalSize = 0;
+            for (let file of files) {
+                formData.append('documents', file);
+                totalSize += file.size;
+            }
+
+            formData.append('document_types', docType);
+            formData.append('doc_source', docSource);
+
+            uploadStatus.textContent = `Uploading ${files.length} file(s) (${(totalSize / 1024 / 1024).toFixed(1)} MB)...`;
+
+            try {
+                // Use XMLHttpRequest for progress tracking
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        // Cap at 70% during browser-to-server upload
+                        // The remaining 30% is for server-to-Cloudinary processing
+                        const percent = Math.round((e.loaded / e.total) * 70);
+                        progressBar.style.width = percent + '%';
+                        progressBar.textContent = percent + '%';
+
+                        if (percent >= 70) {
+                            uploadStatus.textContent = 'Uploading to Google Drive...';
+                        }
+                    }
+                });
+
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            // Now show 100% after server confirms upload complete
+                            progressBar.style.width = '100%';
+                            progressBar.textContent = '100%';
+                            progressBar.classList.remove('progress-bar-animated');
+                            progressBar.classList.add('bg-success');
+                            uploadStatus.textContent = 'Upload complete! Refreshing...';
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            alert(result.message || 'Upload failed');
+                            resetUploadUI();
+                        }
+                    } else {
+                        alert('Upload failed');
+                        resetUploadUI();
+                    }
+                };
+
+                xhr.onerror = function () {
+                    alert('Upload failed - network error');
+                    resetUploadUI();
+                };
+
+                xhr.open('POST', '/documents/cases/<%= caseData.id %>/upload');
+                xhr.send(formData);
+
+            } catch (error) {
+                alert('Upload error: ' + error.message);
+                resetUploadUI();
+            }
+
+            function resetUploadUI() {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="bi bi-upload"></i> Upload Documents';
+                progressDiv.style.display = 'none';
+            }
+        });
+
+
+
+        async function deleteDocument(docId) {
+            if (!confirm('Are you sure you want to delete this document?')) return;
+
+            const response = await fetch(`/documents/${docId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error deleting document');
+            }
+        }
+    </script>
+    <% } %>

@@ -1,0 +1,115 @@
+<div class="card">
+    <div class="card-header">Policy & Claim Information</div>
+    <div class="card-body">
+        <% if (!caseData.policyDetail) { %>
+            <div class="alert alert-info">No policy details entered yet.</div>
+            <% } %>
+
+                <form action="/cases/<%= caseData.id %>/policy" method="POST" id="policyForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="insurance_company" class="form-label">Insurance Company *</label>
+                            <input type="text" class="form-control" id="insurance_company" name="insurance_company"
+                                value="<%= caseData.policyDetail?.insurance_company || caseData.insurance_company %>"
+                                <%=isReadOnly ? 'readonly' : 'required' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="policy_number" class="form-label">Policy Number</label>
+                            <input type="text" class="form-control" id="policy_number" name="policy_number"
+                                value="<%= caseData.policyDetail?.policy_number || '' %>" <%=isReadOnly ? 'readonly'
+                                : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="policy_type" class="form-label">Policy Type *</label>
+                            <input type="text" class="form-control" id="policy_type" name="policy_type"
+                                value="<%= caseData.policyDetail?.policy_type || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>
+                            placeholder="e.g., Individual, Family Floater">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="sum_insured" class="form-label">Sum Insured (₹)</label>
+                            <input type="number" class="form-control" id="sum_insured" name="sum_insured"
+                                value="<%= caseData.policyDetail?.sum_insured || '' %>" <%=isReadOnly ? 'readonly'
+                                : '' %>
+                            step="0.01">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="claim_type" class="form-label">Claim Type *</label>
+                            <input type="text" class="form-control" id="claim_type" name="claim_type"
+                                value="<%= caseData.policyDetail?.claim_type || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>
+                            placeholder="e.g., Cashless, Reimbursement">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="tpa_name" class="form-label">TPA Name</label>
+                            <input type="text" class="form-control" id="tpa_name" name="tpa_name"
+                                value="<%= caseData.policyDetail?.tpa_name || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="claim_number" class="form-label">Claim Number</label>
+                            <input type="text" class="form-control" id="claim_number" name="claim_number"
+                                value="<%= caseData.policyDetail?.claim_number || '' %>" <%=isReadOnly ? 'readonly' : ''
+                                %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="claim_amount" class="form-label">Claim Amount (₹) *</label>
+                            <input type="number" class="form-control" id="claim_amount" name="claim_amount"
+                                value="<%= caseData.policyDetail?.claim_amount || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>
+                            step="0.01">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="date_of_visit" class="form-label">Date of Visit</label>
+                            <input type="date" class="form-control" id="date_of_visit" name="date_of_visit"
+                                value="<%= caseData.policyDetail?.date_of_visit || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="retail_or_corporate" class="form-label">Retail/Corporate</label>
+                            <select class="form-select" id="retail_or_corporate" name="retail_or_corporate" <%=isReadOnly ? 'disabled' : '' %>>
+                                <option value="">-- Select --</option>
+                                <option value="Retail" <%= caseData.policyDetail?.retail_or_corporate === 'Retail' ? 'selected' : '' %>>Retail</option>
+                                <option value="Corporate" <%= caseData.policyDetail?.retail_or_corporate === 'Corporate' ? 'selected' : '' %>>Corporate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <% if (!isReadOnly) { %>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Policy Details
+                        </button>
+                        <% } %>
+                </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('policyForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/policy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving policy details');
+            }
+        });
+    </script>
+    <% } %>

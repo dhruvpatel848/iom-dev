@@ -1,0 +1,77 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-clock-history"></i> Activity Logs</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <span class="text-muted">Showing Last <%= totalLogs %> Events (max 50)</span>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 15%">Date & Time</th>
+                        <th scope="col" style="width: 15%">User</th>
+                        <th scope="col" style="width: 10%">Action</th>
+                        <th scope="col" style="width: 10%">Entity</th>
+                        <th scope="col" style="width: 35%">Details</th>
+                        <th scope="col" style="width: 15%">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (logs && logs.length > 0) { %>
+                        <% logs.forEach(log => { %>
+                            <tr>
+                                <td class="text-muted small">
+                                    <%= new Date(log.createdAt).toLocaleString() %>
+                                </td>
+                                <td>
+                                    <% if (log.user) { %>
+                                        <div><strong><%= log.user.name %></strong></div>
+                                        <div class="text-muted small"><%= log.user.email %></div>
+                                    <% } else { %>
+                                        <span class="text-muted">System/Unknown</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% 
+                                        let badgeClass = 'bg-secondary';
+                                        if (log.action.includes('CREATE')) badgeClass = 'bg-success';
+                                        if (log.action.includes('DELETE')) badgeClass = 'bg-danger';
+                                        if (log.action.includes('UPDATE')) badgeClass = 'bg-primary';
+                                        if (log.action.includes('LOGIN')) badgeClass = 'bg-info text-dark';
+                                    %>
+                                    <span class="badge <%= badgeClass %>"><%= log.action %></span>
+                                </td>
+                                <td>
+                                    <% if (log.entity_type) { %>
+                                        <span class="badge bg-light text-dark border">
+                                            <%= log.entity_type %> #<%= log.entity_id %>
+                                        </span>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                                <td class="small text-wrap">
+                                    <%= log.details %>
+                                </td>
+                                <td class="small font-monospace text-muted">
+                                    <%= log.ip_address %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                No activity logs found.
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

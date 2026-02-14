@@ -1,0 +1,153 @@
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="bi bi-building"></i> Company Management</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+            <i class="bi bi-plus-lg"></i> Add Company
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Company Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (companies && companies.length > 0) { %>
+                        <% companies.forEach((company, index) => { %>
+                            <tr>
+                                <td>#<%= index + 1 %></td>
+                                <td>
+                                    <strong><%= company.name %></strong>
+                                </td>
+                                <td>
+                                    <% if (company.active) { %>
+                                        <span class="badge bg-success">Active</span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" 
+                                            onclick="editCompany('<%= company.id %>', '<%= company.name %>', <%= company.active %>)">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteCompany('<%= company.id %>', '<%= company.name %>')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                                No companies found. Add one to get started.
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Company Modal -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/companies" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Company Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="active" name="active" checked>
+                        <label class="form-check-label" for="active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Company Name *</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="edit_active" name="active">
+                        <label class="form-check-label" for="edit_active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editCompany(id, name, active) {
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_active').checked = active;
+        document.getElementById('editForm').action = '/admin/companies/' + id;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editCompanyModal'));
+        modal.show();
+    }
+
+    function deleteCompany(id, name) {
+        if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+            fetch(`/admin/companies/${id}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error deleting company');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error deleting company');
+            });
+        }
+    }
+</script>

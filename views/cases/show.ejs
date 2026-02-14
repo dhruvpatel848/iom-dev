@@ -1,0 +1,376 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-folder-open"></i>
+            <%= caseData.case_id %>
+        </h2>
+        <p class="text-muted mb-0">
+            Assigned to: <%= caseData.officer.name %>
+                <% if(caseData.fieldOfficer) { %> | FO: <%= caseData.fieldOfficer.name %>
+                        <% } %> |
+                            Created: <%= new Date(caseData.createdAt).toLocaleDateString('en-IN') %> |
+                                Last Updated: <%= new Date(caseData.updatedAt).toLocaleDateString('en-IN') %>
+        </p>
+    </div>
+    <div>
+        <span
+            class="badge bg-<%= caseData.status === 'open' ? 'primary' : caseData.status === 'in_progress' ? 'warning' : 'success' %> fs-6">
+            <%= caseData.status.toUpperCase().replace('_', ' ' ) %>
+        </span>
+    </div>
+</div>
+
+<% if (isReadOnly) { %>
+    <div class="alert alert-warning">
+        <i class="bi bi-lock"></i> This case is closed and read-only. Only admins can edit closed cases.
+    </div>
+    <% } %>
+
+        <% if (user.role==='field_officer' && caseData.status==='closed' ) { %>
+            <div class="row justify-content-center mt-5">
+                <div class="col-md-6">
+                    <div class="card text-center shadow">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="mb-0"><i class="bi bi-check-circle-fill"></i> Case Closed</h4>
+                        </div>
+                        <div class="card-body py-5">
+                            <h1 class="display-4 mb-3">
+                                <%= caseData.case_id %>
+                            </h1>
+                            <p class="lead text-muted">This case has been successfully investigated and closed.</p>
+
+                            <hr class="my-4">
+
+                            <div class="alert alert-info d-inline-block">
+                                <i class="bi bi-cash-stack"></i> Commission:
+                                <strong>
+                                    <% if (caseData.billDetail && caseData.billDetail.approved_expense_fo) { %>
+                                        ₹ <%= parseFloat(caseData.billDetail.approved_expense_fo).toFixed(2) %>
+                                            <% } else { %>
+                                                Pending / ₹ 0.00
+                                                <% } %>
+                                </strong>
+                            </div>
+
+                            <div class="mt-4">
+                                <a href="/cases" class="btn btn-primary">
+                                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Completed on <%= new Date(caseData.updatedAt).toLocaleDateString('en-IN') %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } else { %>
+
+                <!-- Status Update and Edit Case -->
+                <% if (!isReadOnly || ['admin', 'super_admin' ].includes(user.role)) { %>
+                    <div class="card mb-4">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-2">Update Status</h5>
+                                <div class="btn-group" role="group">
+                                    <button type="button"
+                                        class="btn btn-outline-primary <%= caseData.status === 'open' ? 'active' : '' %>"
+                                        onclick="updateStatus(<%= caseData.id %>, 'open')">Open</button>
+                                    <button type="button"
+                                        class="btn btn-outline-warning <%= caseData.status === 'in_progress' ? 'active' : '' %>"
+                                        onclick="updateStatus(<%= caseData.id %>, 'in_progress')">In Progress</button>
+                                    <button type="button"
+                                        class="btn btn-outline-success <%= caseData.status === 'closed' ? 'active' : '' %>"
+                                        onclick="updateStatus(<%= caseData.id %>, 'closed')">Closed</button>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-secondary" data-bs-toggle="modal"
+                                    data-bs-target="#editCaseModal">
+                                    <i class="bi bi-pencil"></i> Edit Case Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <!-- Edit Case Modal -->
+                        <div class="modal fade" id="editCaseModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Case Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="editCaseForm">
+                                            <div class="mb-3">
+                                                <label class="form-label">Insurance Company</label>
+                                                <select class="form-select" name="insurance_company"
+                                                    id="edit_insurance_company" onchange="toggleEditOtherCompany()">
+                                                    <option value="<%= caseData.insurance_company %>" selected>
+                                                        <%= caseData.insurance_company %> (Current)
+                                                    </option>
+                                                    <!-- Populated dynamically via JS if needed, or simple text input if preferred. 
+                             For consistency, we should fetch companies or just allow text if simple. 
+                             Let's use a text input effectively via the 'Other' logic since we don't have company list here easily without fetch.
+                             Actually, let's keep it simple: Text Input for now or Fetch? 
+                             Better: Fetch or just allow editing the text since it's stored as text. -->
+                                                    <!-- Let's try to list standard companies -->
+                                                </select>
+                                                <input type="text" class="form-control mt-2" id="edit_other_company"
+                                                    name="other_company" placeholder="Enter Company Name"
+                                                    style="display: none;">
+                                            </div>
+                                            <!-- Allow Admin to reassign Officer -->
+                                            <% if (['admin', 'super_admin' ].includes(user.role)) { %>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Assign Officer (ID)</label>
+                                                    <input type="number" class="form-control" name="officer_id"
+                                                        value="<%= caseData.officer_id %>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Assign Field Officer</label>
+                                                    <select class="form-select" name="field_officer_id">
+                                                        <option value="">None</option>
+                                                        <% if (typeof fieldOfficers !=='undefined' ) { %>
+                                                            <% fieldOfficers.forEach(fo=> { %>
+                                                                <option value="<%= fo.id %>"
+                                                                    <%=caseData.field_officer_id===fo.id ? 'selected'
+                                                                    : '' %>>
+                                                                    <%= fo.name %>
+                                                                </option>
+                                                                <% }); %>
+                                                                    <% } %>
+                                                    </select>
+                                                </div>
+                                                <% } %>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" onclick="submitEditCase()">Save
+                                            Changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            // Fetch companies for the modal on load
+                            fetch('/companies/list') // We need this route
+                                .then(res => res.json())
+                                .then(data => {
+                                    const select = document.getElementById('edit_insurance_company');
+                                    // Keep current
+                                    const current = select.value;
+                                    select.innerHTML = '';
+
+                                    // Add current if it's not standard? No, just list all.
+                                    data.companies.forEach(c => {
+                                        const opt = document.createElement('option');
+                                        opt.value = c.name;
+                                        opt.textContent = c.name;
+                                        if (c.name === current) opt.selected = true;
+                                        select.appendChild(opt);
+                                    });
+
+                                    // Add Other
+                                    const otherInfo = document.createElement('option');
+                                    otherInfo.value = 'Other';
+                                    otherInfo.textContent = 'Other';
+                                    if (!data.companies.find(c => c.name === current)) {
+                                        // If current is not in list, maybe pre-select Other and fill text?
+                                        // Or just add the current one as an option? 
+                                        if (current) {
+                                            const currOpt = document.createElement('option');
+                                            currOpt.value = current;
+                                            currOpt.textContent = current + ' (Current)';
+                                            currOpt.selected = true;
+                                            select.prepend(currOpt);
+                                        }
+                                    }
+                                    select.appendChild(otherInfo);
+                                })
+                                .catch(err => console.error('Error loading companies', err));
+
+                            function toggleEditOtherCompany() {
+                                const val = document.getElementById('edit_insurance_company').value;
+                                const input = document.getElementById('edit_other_company');
+                                if (val === 'Other') {
+                                    input.style.display = 'block';
+                                    input.required = true;
+                                } else {
+                                    input.style.display = 'none';
+                                    input.required = false;
+                                }
+                            }
+
+                            async function submitEditCase() {
+                                const form = document.getElementById('editCaseForm');
+                                const formData = new FormData(form);
+                                const data = Object.fromEntries(formData);
+
+                                // Handle Other
+                                if (data.insurance_company === 'Other') {
+                                    data.insurance_company = data.other_company;
+                                }
+
+                                const res = await fetch('/cases/<%= caseData.id %>/update-details', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(data)
+                                });
+
+                                if (res.ok) location.reload();
+                                else alert('Error updating case');
+                            }
+                        </script>
+
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="caseTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="patient-tab" data-bs-toggle="tab" href="#patient">Patient
+                                    Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="hospital-tab" data-bs-toggle="tab" href="#hospital">Hospital
+                                    Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="policy-tab" data-bs-toggle="tab" href="#policy">Policy
+                                    Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="documents-tab" data-bs-toggle="tab"
+                                    href="#documents">Documents</a>
+                            </li>
+                            <% if (user.role !=='field_officer' ) { %>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="billing-tab" data-bs-toggle="tab"
+                                        href="#billing">Billing</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="dispatch-tab" data-bs-toggle="tab"
+                                        href="#dispatch">Dispatch</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="investigation-tab" data-bs-toggle="tab"
+                                        href="#investigation">Investigation</a>
+                                </li>
+                                <% } %>
+                                    <% if (user.role==='super_admin' ) { %>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="commission-tab" data-bs-toggle="tab"
+                                                href="#commission">Commission</a>
+                                        </li>
+                                        <% } %>
+                                            <% if (user.role !=='field_officer' ) { %>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" id="reports-tab" data-bs-toggle="tab"
+                                                        href="#reports">Reports</a>
+                                                </li>
+                                                <% } %>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Patient Details Tab -->
+                            <div class="tab-pane fade show active" id="patient">
+                                <%- include('./tabs/patient', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                            </div>
+
+                            <!-- Hospital Details Tab -->
+                            <div class="tab-pane fade" id="hospital">
+                                <%- include('./tabs/hospital', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                            </div>
+
+                            <!-- Policy Details Tab -->
+                            <div class="tab-pane fade" id="policy">
+                                <%- include('./tabs/policy', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                            </div>
+
+                            <!-- Documents Tab -->
+                            <div class="tab-pane fade" id="documents">
+                                <%- include('./tabs/documents', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                            </div>
+
+                            <% if (user.role !=='field_officer' ) { %>
+                                <!-- Billing Tab -->
+                                <div class="tab-pane fade" id="billing">
+                                    <%- include('./tabs/billing', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                                </div>
+
+                                <!-- Dispatch Tab -->
+                                <div class="tab-pane fade" id="dispatch">
+                                    <%- include('./tabs/dispatch', { caseData: caseData, isReadOnly: isReadOnly }) %>
+                                </div>
+
+                                <!-- Investigation Tab -->
+                                <div class="tab-pane fade" id="investigation">
+                                    <%- include('./tabs/investigation', { caseData: caseData, isReadOnly: isReadOnly })
+                                        %>
+                                </div>
+                                <% } %>
+
+                                    <!-- Commission Tab -->
+                                    <% if (user.role==='super_admin' ) { %>
+                                        <div class="tab-pane fade" id="commission">
+                                            <%- include('./tabs/commission', { caseData: caseData, isReadOnly:
+                                                isReadOnly }) %>
+                                        </div>
+                                        <% } %>
+
+                                            <!-- Reports Tab -->
+                                            <% if (user.role !=='field_officer' ) { %>
+                                                <div class="tab-pane fade" id="reports">
+                                                    <%- include('./tabs/reports', { caseData: caseData }) %>
+                                                </div>
+                                                <% } %>
+                        </div>
+
+                        <script>
+                            function updateStatus(caseId, status) {
+                                fetch(`/cases/${caseId}/status`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ status })
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            location.reload();
+                                        } else {
+                                            alert(data.message);
+                                        }
+                                    })
+                                    .catch(err => alert('Error updating status'));
+                            }
+
+                            // Activate tab from URL query parameter
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const tabQuery = urlParams.get('tab');
+
+                                if (tabQuery) {
+                                    const tabTrigger = document.querySelector(`#${tabQuery}-tab`);
+                                    if (tabTrigger) {
+                                        const tab = new bootstrap.Tab(tabTrigger);
+                                        tab.show();
+                                    }
+                                }
+
+                                // Update URL when tab changes
+                                const tabEl = document.querySelectorAll('button[data-bs-toggle="tab"], a[data-bs-toggle="tab"]');
+                                tabEl.forEach(el => {
+                                    el.addEventListener('shown.bs.tab', function (event) {
+                                        const targetId = event.target.getAttribute('href').substring(1); // remove #
+                                        const newUrl = new URL(window.location);
+                                        newUrl.searchParams.set('tab', targetId);
+                                        window.history.pushState({}, '', newUrl);
+                                    });
+                                });
+                            });
+                        </script>
+                        <% } %>

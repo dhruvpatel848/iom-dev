@@ -1,0 +1,155 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-folder"></i> Investigation Cases</h2>
+    <a href="/cases/create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> New Case
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="/cases" method="GET" class="row g-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="search" placeholder="Search by Case ID"
+                    value="<%= filters.search || '' %>">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="open" <%=filters.status==='open' ? 'selected' : '' %>>Open</option>
+                    <option value="in_progress" <%=filters.status==='in_progress' ? 'selected' : '' %>>In Progress
+                    </option>
+                    <option value="closed" <%=filters.status==='closed' ? 'selected' : '' %>>Closed</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="company">
+                    <option value="">All Companies</option>
+                    <% if (typeof companies !=='undefined' ) { %>
+                        <% companies.forEach(comp=> { %>
+                            <option value="<%= comp.name %>" <%=filters.company===comp.name ? 'selected' : '' %>><%=
+                                    comp.name %>
+                            </option>
+                            <% }); %>
+                                <% } %>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-secondary w-100 mb-2">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <button type="button" class="btn btn-success w-100"
+                    onclick="window.location.href='/cases/export/xlsx' + window.location.search">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Export to Excel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cases Table -->
+<div class="card">
+    <div class="card-body">
+        <% if (cases.length===0) { %>
+            <div class="text-center py-5">
+                <i class="bi bi-folder-x" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No cases found. Create your first case to get started.</p>
+            </div>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Patient</th>
+                                <th>Insurance Company</th>
+                                <th>Officer</th>
+                                <th>Status</th>
+                                <th>Commission</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% cases.forEach(function(c) { %>
+                                <tr>
+                                    <td><strong>
+                                            <%= c.case_id %>
+                                        </strong></td>
+                                    <td>
+                                        <%= c.patientDetail?.name || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= c.insurance_company %>
+                                    </td>
+                                    <td>
+                                        <%= c.officer?.name || '-' %>
+                                    </td>
+                                    <td>
+                                        <% if (c.status==='open' ) { %>
+                                            <span class="badge bg-primary">Open</span>
+                                            <% } else if (c.status==='in_progress' ) { %>
+                                                <span class="badge bg-warning">In Progress</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-success">Closed</span>
+                                                    <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (c.commission) { %>
+                                            ₹<%= c.commission.amount %>
+                                                <span
+                                                    class="badge bg-<%= c.commission.status === 'paid' ? 'success' : 'secondary' %>">
+                                                    <%= c.commission.status %>
+                                                </span>
+                                                <% } else { %>
+                                                    -
+                                                    <% } %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(c.createdAt).toLocaleDateString('en-IN') %>
+                                    </td>
+                                    <td>
+                                        <a href="/cases/<%= c.id %>" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <% if (['admin', 'super_admin'].includes(user.role)) { %>
+                                            <button onclick="deleteCase(<%= c.id %>, '<%= c.case_id %>')"
+                                                class="btn btn-sm btn-outline-danger ms-1">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+    </div>
+</div>
+
+<% if (['admin', 'super_admin'].includes(user.role)) { %>
+<script>
+    async function deleteCase(caseId, caseNumber) {
+        if (!confirm(`Are you sure you want to delete case ${caseNumber}? This will permanently delete all related data (patient, hospital, policy, documents, reports, etc.). This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/cases/${caseId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                location.reload();
+            } else {
+                alert(result.message || 'Error deleting case');
+            }
+        } catch (error) {
+            alert('Error deleting case: ' + error.message);
+        }
+    }
+</script>
+<% } %>

@@ -1,0 +1,71 @@
+<h2 class="mb-4"><i class="bi bi-plus-circle"></i> Create New Investigation Case</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form action="/cases" method="POST">
+            <div class="mb-3">
+                <label for="insurance_company" class="form-label">Insurance Company *</label>
+                <select class="form-select" id="insurance_company" name="insurance_company" required
+                    onchange="toggleOtherCompany()">
+                    <option value="">Select Insurance Company</option>
+                    <% if (typeof companies !=='undefined' && companies.length> 0) { %>
+                        <% companies.forEach(company=> { %>
+                            <option value="<%= company.name %>">
+                                <%= company.name %>
+                            </option>
+                            <% }); %>
+                                <% } %>
+                                    <option value="Other">Other</option>
+                </select>
+
+                <div id="other_company_div" class="mt-2" style="display: none;">
+                    <label for="other_company" class="form-label">Enter Company Name</label>
+                    <input type="text" class="form-control" id="other_company" name="other_company"
+                        placeholder="Type company name">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="field_officer_id" class="form-label">Assign Field Officer (Optional)</label>
+                <select class="form-select" id="field_officer_id" name="field_officer_id">
+                    <option value="">Select Field Officer</option>
+                    <% if (typeof fieldOfficers !== 'undefined' && fieldOfficers.length > 0) { %>
+                        <% fieldOfficers.forEach(fo => { %>
+                            <option value="<%= fo.id %>"><%= fo.name %></option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </div>
+
+            <script>
+                function toggleOtherCompany() {
+                    const select = document.getElementById('insurance_company');
+                    const otherDiv = document.getElementById('other_company_div');
+                    const otherInput = document.getElementById('other_company');
+
+                    if (select.value === 'Other') {
+                        otherDiv.style.display = 'block';
+                        otherInput.required = true;
+                    } else {
+                        otherDiv.style.display = 'none';
+                        otherInput.required = false;
+                        otherInput.value = '';
+                    }
+                }
+            </script>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> A unique Case ID will be automatically generated upon creation.
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="/cases" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Case
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

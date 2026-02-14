@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %> - Investigation Management System
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f6fa;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: white !important;
+        }
+
+        .navbar .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: color 0.3s;
+        }
+
+        .navbar .nav-link:hover {
+            color: white !important;
+        }
+
+        .main-content {
+            padding: 30px 0;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .badge {
+            padding: 5px 10px;
+        }
+
+        .alert {
+            border-radius: 4px;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shield-check"></i> Investigation System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <% if (user) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cases">Cases</a>
+                        </li>
+                        <% if (user.role !=='field_officer' ) { %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/cases/create">New Case</a>
+                            </li>
+                            <% } %>
+                                <% if (user.role==='field_officer' ) { %>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/billing/my-billing">My Billing</a>
+                                    </li>
+                                    <% } %>
+                                        <% if (['admin', 'super_admin' ].includes(user.role)) { %>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown"
+                                                    role="button" data-bs-toggle="dropdown">
+                                                    Admin
+                                                </a>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="/admin/dashboard">Dashboard</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                                                    <li><a class="dropdown-item" href="/admin/companies">Companies</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="/admin/templates">Templates</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="/billing/reports">FO Billing
+                                                            Reports</a></li>
+                                                    <% if (user.role==='super_admin' ) { %>
+                                                        <li>
+                                                            <hr class="dropdown-divider">
+                                                        </li>
+                                                        <li><a class="dropdown-item" href="/admin/analysis">Analysis</a>
+                                                        </li>
+                                                        <li><a class="dropdown-item" href="/admin/logs">Activity
+                                                                Logs</a></li>
+                                                        <% } %>
+                                                </ul>
+                                            </li>
+                                            <% } %>
+                                                <li class="nav-item dropdown">
+                                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown"
+                                                        role="button" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-person-circle"></i>
+                                                        <%= user.name %>
+                                                    </a>
+                                                    <ul class="dropdown-menu">
+                                                        <li><span class="dropdown-item-text">Role: <%= user.role %>
+                                                                    </span></li>
+                                                        <li>
+                                                            <hr class="dropdown-divider">
+                                                        </li>
+                                                        <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
+                                                    </ul>
+                                                </li>
+                                                <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <% if (success) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i>
+                    <%= success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+
+                    <% if (error) { %>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <%= error %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <% } %>
+
+                            <%- body %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

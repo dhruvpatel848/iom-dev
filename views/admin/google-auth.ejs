@@ -1,0 +1,75 @@
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-google me-2"></i>Google Drive Authorization</h4>
+                </div>
+                <div class="card-body">
+                    <% if (typeof error !== 'undefined' && error) { %>
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle me-2"></i><%= error %>
+                        </div>
+                    <% } %>
+                    
+                    <% if (typeof success !== 'undefined' && success) { %>
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i><%= success %>
+                        </div>
+                    <% } %>
+
+                    <% if (isAuthorized) { %>
+                        <div class="text-center py-4">
+                            <div class="mb-4">
+                                <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+                            </div>
+                            <h5 class="text-success">Google Drive is Connected!</h5>
+                            <p class="text-muted">Your Google Drive is authorized and ready to receive file uploads.</p>
+                            <p class="text-muted small">Files will be uploaded to your configured folder.</p>
+                            <a href="/admin/dashboard" class="btn btn-primary mt-3">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-4">
+                            <div class="mb-4">
+                                <i class="bi bi-cloud-upload text-warning" style="font-size: 4rem;"></i>
+                            </div>
+                            <h5>Connect Your Google Drive</h5>
+                            <p class="text-muted">Authorize this application to upload files to your Google Drive.</p>
+                            <p class="text-muted small">This is a one-time setup. Your files will be stored in your 2TB Google One storage.</p>
+                            
+                            <% if (authUrl) { %>
+                                <a href="<%= authUrl %>" class="btn btn-lg btn-danger mt-3">
+                                    <i class="bi bi-google me-2"></i>Authorize with Google
+                                </a>
+                            <% } else { %>
+                                <div class="alert alert-warning mt-3">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Setup Required:</strong> OAuth credentials not configured properly.
+                                    <br><small>Make sure google-credentials.json contains OAuth 2.0 Client ID credentials.</small>
+                                </div>
+                            <% } %>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="bg-light p-3 rounded">
+                            <h6><i class="bi bi-info-circle me-2"></i>Setup Instructions:</h6>
+                            <ol class="mb-0 small">
+                                <li>Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a></li>
+                                <li>Select your project (iomcms-storage)</li>
+                                <li>Go to <strong>APIs & Services → Credentials</strong></li>
+                                <li>Click <strong>+ Create Credentials → OAuth 2.0 Client ID</strong></li>
+                                <li>Choose <strong>Web application</strong></li>
+                                <li>Add redirect URI: <code>http://localhost:3000/admin/google-auth/callback</code></li>
+                                <li>Download the JSON and save as <code>google-credentials.json</code></li>
+                                <li>Restart the server and click Authorize</li>
+                            </ol>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

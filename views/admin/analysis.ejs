@@ -1,0 +1,181 @@
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-graph-up"></i> Analysis Dashboard</h2>
+        <p class="text-muted">Overview of billing, claims, and commissions.</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="/admin/analysis" method="GET" class="row g-3">
+<div class="col-md-3">
+                <label class="form-label">Date Range</label>
+                <div class="input-group">
+                    <input type="date" class="form-control" name="startDate" value="<%= query.startDate || '' %>">
+                    <span class="input-group-text">to</span>
+                    <input type="date" class="form-control" name="endDate" value="<%= query.endDate || '' %>">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Month</label>
+                <select class="form-select" name="month">
+                    <option value="">All Months</option>
+                    <% ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].forEach((m, i) => { %>
+                    <option value="<%= i + 1 %>" <%= query.month == (i + 1) ? 'selected' : '' %>><%= m %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Year</label>
+                <select class="form-select" name="year">
+                    <option value="">All Years</option>
+                    <% const currentYear = new Date().getFullYear(); %>
+                    <% for(let y = currentYear; y >= currentYear - 5; y--) { %>
+                    <option value="<%= y %>" <%= query.year == y ? 'selected' : '' %>><%= y %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2"><i class="bi bi-filter"></i> Filter</button>
+                <a href="/admin/analysis" class="btn btn-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Commission</h5>
+                <h2 class="card-text">₹<%= totalCommission.toLocaleString('en-IN') %></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title">Paid Commission</h5>
+                <h2 class="card-text">₹<%= paidCommission.toLocaleString('en-IN') %></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title">Pending Commission</h5>
+                <h2 class="card-text">₹<%= pendingCommission.toLocaleString('en-IN') %></h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Visualizations -->
+<div class="row">
+    <!-- Bar Chart: Company Performance -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Company Performance (Commission vs Claims)</div>
+            <div class="card-body">
+                <canvas id="companyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie Chart: Commission Status -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Commission Share by Company</div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Data from Backend
+    const labels = <%- labels %>;
+    const commissionData = <%- commissionData %>;
+    const claimData = <%- claimData %>;
+    const pendingAmount = <%= pendingCommission %>;
+    const paidAmount = <%= paidCommission %>;
+
+    // Bar Chart
+    const ctxBar = document.getElementById('companyChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Commission (₹)',
+                    data: commissionData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Helper to generate consistent colors
+    const backgroundColors = [
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)',
+        'rgba(83, 102, 255, 0.7)',
+        'rgba(40, 159, 64, 0.7)',
+        'rgba(210, 99, 132, 0.7)',
+    ];
+
+    // Pie Chart: Commission Share by Company
+    const ctxPie = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: labels, // Company Names
+            datasets: [{
+                data: commissionData, // Commission Amount per Company
+                backgroundColor: labels.map((_, i) => backgroundColors[i % backgroundColors.length]),
+                borderColor: '#fff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        font: { size: 10 }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Commission Distribution by Company'
+                }
+            }
+        }
+    });
+</script>

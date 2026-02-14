@@ -1,0 +1,267 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-file-earmark-text"></i> Report Templates</h2>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="bi bi-upload"></i> Upload DOCX
+        </button>
+        <a href="/admin/templates/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Template
+        </a>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload DOCX Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/admin/templates/upload" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="template_file" class="form-label">Template File (.docx) *</label>
+                        <input type="file" class="form-control" id="template_file" name="template_file"
+                            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="insurance_company" class="form-label">Insurance Company *</label>
+                        <select class="form-select" id="insurance_company" name="insurance_company" required
+                            onchange="toggleOtherCompany()">
+                            <option value="">Select Insurance Company</option>
+                            <% if (typeof companies !=='undefined' && companies.length> 0) { %>
+                                <% companies.forEach(company=> { %>
+                                    <option value="<%= company.name %>">
+                                        <%= company.name %>
+                                    </option>
+                                    <% }); %>
+                                        <% } %>
+                                            <option value="Other">Other</option>
+                        </select>
+
+                        <div id="other_company_div" class="mt-2" style="display: none;">
+                            <label for="other_company" class="form-label">Enter Company Name</label>
+                            <input type="text" class="form-control" id="other_company" name="other_company"
+                                placeholder="Type company name">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="template_name" class="form-label">Template Name *</label>
+                        <input type="text" class="form-control" id="template_name" name="template_name" required>
+                    </div>
+
+                    <div class="accordion mb-3" id="placeholderAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    <i class="bi bi-info-circle me-2"></i> View Available Placeholders
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                                data-bs-parent="#placeholderAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-2">Copy these exactly into your Word document:</p>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <strong>Case & Patient</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{case_id}</code> - Case ID</li>
+                                                <li><code>{insurance_company}</code> - Insurer Name</li>
+                                                <li><code>{patient_name}</code> - Patient Name</li>
+                                                <li><code>{patient_age}</code> - Age</li>
+                                                <li><code>{patient_gender}</code> - Gender</li>
+                                                <li><code>{patient_address}</code> - Address</li>
+                                                <li><code>{patient_aadhaar}</code> - Aadhaar No.</li>
+                                                <li><code>{admission_date}</code> - DOA</li>
+                                                <li><code>{discharge_date}</code> - DOD</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Hospital & Doctor</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{hospital_name}</code> - Hospital Name</li>
+                                                <li><code>{hospital_address}</code> - Address</li>
+                                                <li><code>{hospital_registration}</code> - Reg. No.</li>
+                                                <li><code>{doctor_name}</code> - Doctor Name</li>
+                                                <li><code>{doctor_registration_number}</code> - Doctor Reg.</li>
+                                                <li><code>{doctor_qualification}</code> - Doctor Qual.</li>
+                                                <li><code>{doctor_contact}</code> - Doctor Contact</li>
+                                                <li><code>{total_beds}</code> - Total Beds</li>
+                                                <li><code>{accommodation_class}</code> - Class</li>
+                                                <li><code>{icu_beds}</code> - ICU Beds</li>
+                                                <li><code>{ot_count}</code> - OT Count</li>
+                                                <li><code>{rmo_count}</code> - RMO Count</li>
+                                                <li><code>{nursing_staff_count}</code> - Nursing Staff</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Pathology & Pharmacy</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{pathology_center}</code> - Pathology Center</li>
+                                                <li><code>{pathology_doctor_name}</code> - Pathologist</li>
+                                                <li><code>{pathologist_registration_number}</code> - Path Reg.</li>
+                                                <li><code>{medical_store}</code> - Medical Store</li>
+                                                <li><code>{pharmacy_dl_number}</code> - Pharmacy DL No.</li>
+                                                <li><code>{pharmacy_gst_number}</code> - Pharmacy GST</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Policy & Billing</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{policy_number}</code> - Policy No.</li>
+                                                <li><code>{policy_type}</code> - Policy Type</li>
+                                                <li><code>{sum_insured}</code> - Sum Insured</li>
+                                                <li><code>{claim_type}</code> - Claim Type</li>
+                                                <li><code>{claim_amount}</code> - Claim Amt</li>
+                                                <li><code>{claim_number}</code> - Claim No.</li>
+                                                <li><code>{tpa_name}</code> - TPA Name</li>
+                                                <li><code>{date_of_visit}</code> - Date of Visit</li>
+                                                <li><code>{retail_or_corporate}</code> - Retail/Corporate</li>
+                                                <li><code>{approved_expense_company}</code> - Appr. Amt</li>
+                                                <li><code>{approved_expense_fo}</code> - FO Expense</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Investigation Notes</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{investigation_findings}</code> - Findings</li>
+                                                <li><code>{observations}</code> - Observations</li>
+                                                <li><code>{trigger}</code> - Trigger</li>
+                                                <li><code>{red_flags}</code> - Red Flags</li>
+                                                <li><code>{supporting_notes}</code> - Supporting Notes</li>
+                                                <li><code>{diagnosis}</code> - Diagnosis</li>
+                                                <li><code>{brief_description}</code> - Brief Description</li>
+                                                <li><code>{investigation_conclusion}</code> - Conclusion</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Visit Findings</strong>
+                                            <ul class="list-unstyled small mb-2">
+                                                <li><code>{hospital_visit_findings}</code> - Hospital Visit</li>
+                                                <li><code>{doctor_visit_findings}</code> - Doctor Visit</li>
+                                                <li><code>{insured_visit_findings}</code> - Insured Visit</li>
+                                                <li><code>{pharmacy_visit_findings}</code> - Pharmacy Visit</li>
+                                                <li><code>{lab_visit_findings}</code> - Lab Visit</li>
+                                            </ul>
+                                            <strong>Report</strong>
+                                            <ul class="list-unstyled small mb-0">
+                                                <li><code>{conclusion}</code> - Report Conclusion</li>
+                                                <li><code>{recommendation}</code> - Recommendation</li>
+                                                <li><code>{officer_name}</code> - Officer Name</li>
+                                                <li><code>{generated_date}</code> - Generated Date</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-warning mt-2 small p-2 mb-0">
+                                        Note: Use single curly braces like <code>{patient_name}</code> for .docx
+                                        templates.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleOtherCompany() {
+        const select = document.getElementById('insurance_company');
+        const otherDiv = document.getElementById('other_company_div');
+        const otherInput = document.getElementById('other_company');
+
+        if (select.value === 'Other') {
+            otherDiv.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherDiv.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
+    }
+</script>
+
+<div class="card">
+    <div class="card-body">
+        <% if (templates.length===0) { %>
+            <p class="text-muted">No templates found. Create your first template.</p>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Template Name</th>
+                                <th>Insurance Company</th>
+                                <th>Created By</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% templates.forEach(function(template) { %>
+                                <tr>
+                                    <td>
+                                        <%= template.template_name %>
+                                    </td>
+                                    <td>
+                                        <%= template.insurance_company %>
+                                    </td>
+                                    <td>
+                                        <%= template.creator?.name || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(template.createdAt).toLocaleDateString('en-IN') %>
+                                    </td>
+                                    <td>
+                                        <% if (template.file_path) { %>
+                                            <button class="btn btn-sm btn-outline-secondary" disabled
+                                                title="Imported templates cannot be edited directly. Re-upload to update.">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </button>
+                                            <% } else { %>
+                                                <a href="/admin/templates/<%= template.id %>/edit"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <% } %>
+                                                    <button onclick="deleteTemplate('<%= template.id %>')"
+                                                        class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+    </div>
+</div>
+
+<script>
+    async function deleteTemplate(templateId) {
+        if (!confirm('Are you sure you want to delete this template?')) return;
+
+        const response = await fetch(`/admin/templates/${templateId}/delete`, {
+            method: 'POST'
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        } else {
+            alert(result.message);
+        }
+    }
+</script>

@@ -1,0 +1,204 @@
+<div class="card">
+    <div class="card-header">Hospital Information</div>
+    <div class="card-body">
+        <% if (!caseData.hospitalDetail) { %>
+            <div class="alert alert-info">No hospital details entered yet.</div>
+            <% } %>
+
+                <form action="/cases/<%= caseData.id %>/hospital" method="POST" id="hospitalForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hospital_name" class="form-label">Hospital Name *</label>
+                            <input type="text" class="form-control" id="hospital_name" name="hospital_name"
+                                value="<%= caseData.hospitalDetail?.hospital_name || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="registration_number" class="form-label">Registration/IPD Number</label>
+                            <input type="text" class="form-control" id="registration_number" name="registration_number"
+                                value="<%= caseData.hospitalDetail?.registration_number || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="h_city" name="city"
+                                value="<%= caseData.hospitalDetail?.city || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <!-- Bed Number Removed -->
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="contact_number" class="form-label">Hospital Contact Number</label>
+                            <input type="text" class="form-control" id="contact_number" name="contact_number"
+                                value="<%= caseData.hospitalDetail?.contact_number || '' %>" <%=isReadOnly ? 'readonly'
+                                : '' %>>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="address" class="form-label">Hospital Address *</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" <%=isReadOnly
+                                ? 'readonly' : 'required' %>><%= caseData.hospitalDetail?.address || '' %></textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor_name" class="form-label">Doctor Name *</label>
+                            <input type="text" class="form-control" id="doctor_name" name="doctor_name"
+                                value="<%= caseData.hospitalDetail?.doctor_name || '' %>" <%=isReadOnly ? 'readonly'
+                                : 'required' %>>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor_registration_number" class="form-label">Doctor Reg. No.</label>
+                            <input type="text" class="form-control" id="doctor_registration_number"
+                                name="doctor_registration_number"
+                                value="<%= caseData.hospitalDetail?.doctor_registration_number || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-12">
+                            <hr class="my-3">
+                            <h6 class="text-muted">Pathology & Pharmacy</h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pathology_center" class="form-label">Pathology Center</label>
+                            <input type="text" class="form-control" id="pathology_center" name="pathology_center"
+                                value="<%= caseData.hospitalDetail?.pathology_center || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pathology_doctor_name" class="form-label">Pathologist Name</label>
+                            <input type="text" class="form-control" id="pathology_doctor_name"
+                                name="pathology_doctor_name"
+                                value="<%= caseData.hospitalDetail?.pathology_doctor_name || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pathologist_registration_number" class="form-label">Pathologist Reg. No.</label>
+                            <input type="text" class="form-control" id="pathologist_registration_number"
+                                name="pathologist_registration_number"
+                                value="<%= caseData.hospitalDetail?.pathologist_registration_number || '' %>"
+                                <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="medical_store" class="form-label">Medical Store</label>
+                            <input type="text" class="form-control" id="medical_store" name="medical_store"
+                                value="<%= caseData.hospitalDetail?.medical_store || '' %>" <%=isReadOnly ? 'readonly'
+                                : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="total_beds" class="form-label">Total No. of Beds (Hospital)</label>
+                            <input type="number" class="form-control" id="total_beds" name="total_beds"
+                                value="<%= caseData.hospitalDetail?.total_beds || '' %>" <%=isReadOnly ? 'readonly' : ''
+                                %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="accommodation_class" class="form-label">Class of Accommodation</label>
+                            <input type="text" class="form-control" id="accommodation_class" name="accommodation_class"
+                                value="<%= caseData.hospitalDetail?.accommodation_class || '' %>" <%=isReadOnly
+                                ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-12">
+                            <hr class="my-3">
+                            <h6 class="text-muted">Hospital Infrastructure Details</h6>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="icu_beds" class="form-label">No. of ICU Beds</label>
+                            <input type="number" class="form-control" id="icu_beds" name="icu_beds"
+                                value="<%= caseData.hospitalDetail?.icu_beds || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="ot_count" class="form-label">No. of OT</label>
+                            <input type="number" class="form-control" id="ot_count" name="ot_count"
+                                value="<%= caseData.hospitalDetail?.ot_count || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="rmo_count" class="form-label">No. of RMO</label>
+                            <input type="number" class="form-control" id="rmo_count" name="rmo_count"
+                                value="<%= caseData.hospitalDetail?.rmo_count || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="nursing_staff_count" class="form-label">No. of Nursing Staff</label>
+                            <input type="number" class="form-control" id="nursing_staff_count" name="nursing_staff_count"
+                                value="<%= caseData.hospitalDetail?.nursing_staff_count || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-12">
+                            <hr class="my-3">
+                            <h6 class="text-muted">Additional Doctor Details</h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor_qualification" class="form-label">Doctor Qualification</label>
+                            <input type="text" class="form-control" id="doctor_qualification" name="doctor_qualification"
+                                value="<%= caseData.hospitalDetail?.doctor_qualification || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor_contact" class="form-label">Doctor Contact No.</label>
+                            <input type="text" class="form-control" id="doctor_contact" name="doctor_contact"
+                                value="<%= caseData.hospitalDetail?.doctor_contact || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-12">
+                            <hr class="my-3">
+                            <h6 class="text-muted">Pharmacy License Details</h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pharmacy_dl_number" class="form-label">Pharmacy DL No.</label>
+                            <input type="text" class="form-control" id="pharmacy_dl_number" name="pharmacy_dl_number"
+                                value="<%= caseData.hospitalDetail?.pharmacy_dl_number || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="pharmacy_gst_number" class="form-label">Pharmacy GST No.</label>
+                            <input type="text" class="form-control" id="pharmacy_gst_number" name="pharmacy_gst_number"
+                                value="<%= caseData.hospitalDetail?.pharmacy_gst_number || '' %>" <%=isReadOnly ? 'readonly' : '' %>>
+                        </div>
+                    </div>
+
+                    <% if (!isReadOnly) { %>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Hospital Details
+                        </button>
+                        <% } %>
+                </form>
+    </div>
+</div>
+
+<% if (!isReadOnly) { %>
+    <script>
+        document.getElementById('hospitalForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const response = await fetch('/cases/<%= caseData.id %>/hospital', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Error saving hospital details');
+            }
+        });
+    </script>
+    <% } %>
